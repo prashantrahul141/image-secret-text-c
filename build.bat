@@ -1,1 +1,3 @@
-gcc -Wall -Wextra main.c -o main && main -f input.png
+@echo Building from source...
+@gcc -Wall -Wextra main.c -o main
+@echo compilation complete: main.exe
