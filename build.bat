@@ -1,0 +1,1 @@
+gcc -Wall -Wextra main.c -o main && main -f input.png
