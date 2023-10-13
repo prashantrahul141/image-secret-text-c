@@ -133,7 +133,9 @@ int main(int argc, char *argv[])
   // parsing command line arguments.
   int option;
   char *filename = NULL;
-  while ((option = getopt(argc, argv, "hkf:")) != -1)
+  char *encoding_data = NULL;
+  bool DECODING_MODE = true;
+  while ((option = getopt(argc, argv, "het:df:")) != -1)
   {
     switch (option)
     {
@@ -141,8 +143,22 @@ int main(int argc, char *argv[])
       printf(get_help_message());
       exit(0);
 
-    case 'k':
-      printf("k was entered.\n");
+    case 'e':
+      printf("ENCODING MODE.\n");
+      DECODING_MODE = false;
+      break;
+
+    case 't':
+      if (!DECODING_MODE)
+      {
+        encoding_data = optarg;
+        printf("DATA TO BE ENCODED IN THE IMAGE : %s (%d).\n", encoding_data, strlen(encoding_data));
+      }
+      break;
+
+    case 'd':
+      printf("DECODING MODE.\n");
+      DECODING_MODE = true;
       break;
 
     case 'f':
@@ -151,27 +167,40 @@ int main(int argc, char *argv[])
       break;
 
     default:
-      fprintf(stderr, "Could not parse these command line arguments.\n");
+      fprintf(stderr, "[ERROR] : Could not parse these command line arguments.\n");
+      exit(1);
       break;
     }
   }
 
   // opening png file.
   FILE *input_file_ptr = fopen(filename, "rb");
-  FILE *output_file_ptr = fopen("output.png", "wb");
+  FILE *output_file_ptr;
 
-  // checking if file opened or not.
-  if (!input_file_ptr)
+  if (!DECODING_MODE)
   {
-    fprintf(stderr, "Could not open this file, make sure the image is in the "
-                    "same directory as this executable.");
-    exit(1);
+    // in encoding mode.
+    if (strlen(encoding_data) <= 0)
+    {
+      fprintf(stderr, "[ERROR] : Encoding text cannot be 0 characters long.\n");
+      exit(1);
+    }
+
+    output_file_ptr = fopen("output.png", "wb");
+    if (!output_file_ptr)
+    {
+      fprintf(stderr, "Could not create output file.\n");
+      exit(1);
+    }
   }
 
   // trying to read png signature.
   uint8_t signature[PNG_SIGNATURE_SIZE];
   read_buffer_from_file(input_file_ptr, signature, sizeof(signature));
-  write_buffer_to_file(output_file_ptr, signature, sizeof(signature));
+  if (!DECODING_MODE)
+  {
+    write_buffer_to_file(output_file_ptr, signature, sizeof(signature));
+  }
 
   if (memcmp(signature, PNG_SIGNATURE, 8) != 0)
   {
@@ -185,50 +214,73 @@ int main(int argc, char *argv[])
     // reading length.
     uint32_t data_chunk_size;
     read_buffer_from_file(input_file_ptr, &data_chunk_size, sizeof(data_chunk_size));
-    write_buffer_to_file(output_file_ptr, &data_chunk_size, sizeof(data_chunk_size));
-    reverse_bytes_order(&data_chunk_size, sizeof(data_chunk_size));
 
     // chunk type.
     uint8_t chunk_type[4];
     read_buffer_from_file(input_file_ptr, chunk_type, sizeof(chunk_type));
-    write_buffer_to_file(output_file_ptr, chunk_type, sizeof(chunk_type));
 
-    float iterations = data_chunk_size / (float)sizeof(idat_chunk_copy_data);
-    uint32_t temp_data_chunk_size = data_chunk_size;
-    DEBUG_PRINT(("Iterations required : %f for IDAT_SIZE : %d and DATA_CHUNK_SIZE : %d\n", iterations, sizeof(idat_chunk_copy_data), data_chunk_size));
-    if (iterations > 1.0f)
+    if (!DECODING_MODE)
     {
-      // when there are more data than holding capacity.
-      for (;;)
+      // writing output files in encoding mode.
+      write_buffer_to_file(output_file_ptr, &data_chunk_size, sizeof(data_chunk_size));
+      write_buffer_to_file(output_file_ptr, chunk_type, sizeof(chunk_type));
+    }
+
+    reverse_bytes_order(&data_chunk_size, sizeof(data_chunk_size));
+
+    if (!DECODING_MODE)
+    {
+      // when in encoding mode.
+      float iterations = data_chunk_size / (float)sizeof(idat_chunk_copy_data);
+      uint32_t temp_data_chunk_size = data_chunk_size;
+      DEBUG_PRINT(("Iterations required : %f for IDAT_SIZE : %d and DATA_CHUNK_SIZE : %d\n", iterations, sizeof(idat_chunk_copy_data), data_chunk_size));
+      if (iterations > 1.0f)
       {
-        if (temp_data_chunk_size > sizeof(idat_chunk_copy_data))
+        // when there are more data than holding capacity.
+        for (;;)
         {
-          read_buffer_from_file(input_file_ptr, &idat_chunk_copy_data, sizeof(idat_chunk_copy_data));
-          write_buffer_to_file(output_file_ptr, &idat_chunk_copy_data, sizeof(idat_chunk_copy_data));
-          temp_data_chunk_size = (size_t)(temp_data_chunk_size - (size_t)sizeof(idat_chunk_copy_data));
+          if (temp_data_chunk_size > sizeof(idat_chunk_copy_data))
+          {
+            read_buffer_from_file(input_file_ptr, &idat_chunk_copy_data, sizeof(idat_chunk_copy_data));
+            write_buffer_to_file(output_file_ptr, &idat_chunk_copy_data, sizeof(idat_chunk_copy_data));
+            temp_data_chunk_size = (size_t)(temp_data_chunk_size - (size_t)sizeof(idat_chunk_copy_data));
+          }
+          else
+          {
+            read_buffer_from_file(input_file_ptr, &idat_chunk_copy_data, temp_data_chunk_size);
+            write_buffer_to_file(output_file_ptr, &idat_chunk_copy_data, temp_data_chunk_size);
+            break; // just to be sure.
+          }
         }
-        else
+      }
+      else
+      {
+        if (data_chunk_size != 0)
         {
-          read_buffer_from_file(input_file_ptr, &idat_chunk_copy_data, temp_data_chunk_size);
-          write_buffer_to_file(output_file_ptr, &idat_chunk_copy_data, temp_data_chunk_size);
-          break; // just to be sure.
+          // when there are less data than holding capacity.
+          DEBUG_PRINT(("writing entire chunk in once.\n"));
+          read_buffer_from_file(input_file_ptr, &idat_chunk_copy_data, data_chunk_size);
+          write_buffer_to_file(output_file_ptr, &idat_chunk_copy_data, data_chunk_size);
         }
       }
     }
     else
     {
-      if (data_chunk_size != 0)
+      // when in decoding mode. No need to write output file we
+      // can just seek the chunk.
+      if (fseek(input_file_ptr, data_chunk_size, SEEK_CUR) != 0)
       {
-        // when there are less data than holding capacity.
-        DEBUG_PRINT(("writing entire chunk in once.\n"));
-        read_buffer_from_file(input_file_ptr, &idat_chunk_copy_data, data_chunk_size);
-        write_buffer_to_file(output_file_ptr, &idat_chunk_copy_data, data_chunk_size);
+        fprintf(stderr, "Failed to seek input file data chunk.");
+        exit(1);
       }
     }
 
     uint32_t chunk_crc;
     read_buffer_from_file(input_file_ptr, &chunk_crc, sizeof(chunk_crc));
-    write_buffer_to_file(output_file_ptr, &chunk_crc, sizeof(chunk_crc));
+    if (!DECODING_MODE)
+    {
+      write_buffer_to_file(output_file_ptr, &chunk_crc, sizeof(chunk_crc));
+    }
 
     DEBUG_PRINT(("--------------------------------------\n"));
     DEBUG_PRINT(("Chunk Data Size : %u\n", data_chunk_size));
@@ -240,13 +292,17 @@ int main(int argc, char *argv[])
     // the end of chunks according to png specification.
     if (*(uint32_t *)chunk_type == IEND_CHUNK_TYPE)
     {
-      DEBUG_PRINT(("Reached IEND Chunk."));
+      DEBUG_PRINT(("Reached IEND Chunk.\n"));
       read_buffer = false;
     }
   }
+
   // closes file.
   fclose(input_file_ptr);
-  fclose(output_file_ptr);
+  if (!DECODING_MODE)
+  {
+    fclose(output_file_ptr);
+  }
 
   // end time.
   endTime = (double)clock() / CLOCKS_PER_SEC;
