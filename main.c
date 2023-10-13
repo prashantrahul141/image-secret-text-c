@@ -7,6 +7,18 @@
 #include <stdio.h>
 #include <stdint.h>
 
+// to enable debug mode.
+#define DEBUG
+// DEBUG print macro.
+#ifdef DEBUG
+#define DEBUG_PRINT(x) printf x
+#else
+#define DEBUG_PRINT(x) \
+  do                   \
+  {                    \
+  } while (0)
+#endif
+
 #define IHDR_CHUNK_TYPE 0x52444849
 #define IDAT_CHUNK_TYPE 0x54414449
 #define IEND_CHUNK_TYPE 0x444E4549
@@ -14,6 +26,9 @@
 
 #define PNG_SIGNATURE_SIZE 8
 const uint8_t PNG_SIGNATURE[PNG_SIGNATURE_SIZE] = {137, 80, 78, 71, 13, 10, 26, 10};
+
+#define IDAT_CHUNK_COPY_SIZE (32 * 1024)
+uint32_t idat_chunk_copy_data[IDAT_CHUNK_COPY_SIZE];
 
 /// @brief returns help message string.
 char *get_help_message()
@@ -26,12 +41,13 @@ Arguments:\n\
   return help_message;
 }
 
-/// @brief  buffer from a file.
+/// @brief read buffer from a file.
 /// @param fileptr
 /// @param buffer
 /// @param buffer_size
 void read_buffer_from_file(FILE *fileptr, void *buffer, size_t buffer_size)
 {
+  DEBUG_PRINT(("[READ_BUFFER_FROM_FILE] : %d\n", buffer_size));
   size_t n = fread(buffer, buffer_size, 1, fileptr);
   if (n != 1)
   {
@@ -48,6 +64,35 @@ void read_buffer_from_file(FILE *fileptr, void *buffer, size_t buffer_size)
     else
     {
       printf("[ERROR] : Some unknown error occured while reading buffer.\n");
+      exit(1);
+    }
+  }
+}
+
+/// @brief write buffer from a file.
+/// @param fileptr
+/// @param buffer
+/// @param buffer_size
+void write_buffer_to_file(FILE *fileptr, void *buffer, size_t buffer_size)
+{
+
+  DEBUG_PRINT(("[WRITE_BUFFER_FROM_FILE] : %d\n", buffer_size));
+  size_t n = fwrite(buffer, buffer_size, 1, fileptr);
+  if (n != 1)
+  {
+    if (ferror(fileptr))
+    {
+      fprintf(stderr, "[ERROR] : Could not read buffer.\n");
+      exit(1);
+    }
+    else if (feof(fileptr))
+    {
+      fprintf(stderr, "[ERROR] : could not write buffer, reached EOF.\n");
+      exit(1);
+    }
+    else
+    {
+      printf("[ERROR] : Some unknown error occured while writing buffer.\n");
       exit(1);
     }
   }
@@ -80,9 +125,10 @@ void reverse_bytes_order(void *buffer_, size_t size_cap)
 
 int main(int argc, char *argv[])
 {
+
   // for profiling.
   double startTime, endTime;
-  startTime = (float)clock() / CLOCKS_PER_SEC;
+  startTime = (double)clock() / CLOCKS_PER_SEC;
 
   // parsing command line arguments.
   int option;
@@ -111,10 +157,11 @@ int main(int argc, char *argv[])
   }
 
   // opening png file.
-  FILE *fileptr = fopen(filename, "rb");
+  FILE *input_file_ptr = fopen(filename, "rb");
+  FILE *output_file_ptr = fopen("output.png", "wb");
 
   // checking if file opened or not.
-  if (!fileptr)
+  if (!input_file_ptr)
   {
     fprintf(stderr, "Could not open this file, make sure the image is in the "
                     "same directory as this executable.");
@@ -123,7 +170,8 @@ int main(int argc, char *argv[])
 
   // trying to read png signature.
   uint8_t signature[PNG_SIGNATURE_SIZE];
-  read_buffer_from_file(fileptr, signature, sizeof(signature));
+  read_buffer_from_file(input_file_ptr, signature, sizeof(signature));
+  write_buffer_to_file(output_file_ptr, signature, sizeof(signature));
 
   if (memcmp(signature, PNG_SIGNATURE, 8) != 0)
   {
@@ -136,40 +184,72 @@ int main(int argc, char *argv[])
   {
     // reading length.
     uint32_t data_chunk_size;
-    read_buffer_from_file(fileptr, &data_chunk_size, sizeof(data_chunk_size));
+    read_buffer_from_file(input_file_ptr, &data_chunk_size, sizeof(data_chunk_size));
+    write_buffer_to_file(output_file_ptr, &data_chunk_size, sizeof(data_chunk_size));
     reverse_bytes_order(&data_chunk_size, sizeof(data_chunk_size));
 
     // chunk type.
     uint8_t chunk_type[4];
-    read_buffer_from_file(fileptr, chunk_type, sizeof(chunk_type));
+    read_buffer_from_file(input_file_ptr, chunk_type, sizeof(chunk_type));
+    write_buffer_to_file(output_file_ptr, chunk_type, sizeof(chunk_type));
 
-    if (fseek(fileptr, data_chunk_size, SEEK_CUR) != 0)
+    float iterations = data_chunk_size / (float)sizeof(idat_chunk_copy_data);
+    uint32_t temp_data_chunk_size = data_chunk_size;
+    DEBUG_PRINT(("Iterations required : %f for IDAT_SIZE : %d and DATA_CHUNK_SIZE : %d\n", iterations, sizeof(idat_chunk_copy_data), data_chunk_size));
+    if (iterations > 1.0f)
     {
-      fprintf(stderr, "Could not skip chunk");
-      exit(1);
+      // when there are more data than holding capacity.
+      for (;;)
+      {
+        if (temp_data_chunk_size > sizeof(idat_chunk_copy_data))
+        {
+          read_buffer_from_file(input_file_ptr, &idat_chunk_copy_data, sizeof(idat_chunk_copy_data));
+          write_buffer_to_file(output_file_ptr, &idat_chunk_copy_data, sizeof(idat_chunk_copy_data));
+          temp_data_chunk_size = (size_t)(temp_data_chunk_size - (size_t)sizeof(idat_chunk_copy_data));
+        }
+        else
+        {
+          read_buffer_from_file(input_file_ptr, &idat_chunk_copy_data, temp_data_chunk_size);
+          write_buffer_to_file(output_file_ptr, &idat_chunk_copy_data, temp_data_chunk_size);
+          break; // just to be sure.
+        }
+      }
+    }
+    else
+    {
+      if (data_chunk_size != 0)
+      {
+        // when there are less data than holding capacity.
+        DEBUG_PRINT(("writing entire chunk in once.\n"));
+        read_buffer_from_file(input_file_ptr, &idat_chunk_copy_data, data_chunk_size);
+        write_buffer_to_file(output_file_ptr, &idat_chunk_copy_data, data_chunk_size);
+      }
     }
 
     uint32_t chunk_crc;
-    read_buffer_from_file(fileptr, &chunk_crc, sizeof(chunk_crc));
+    read_buffer_from_file(input_file_ptr, &chunk_crc, sizeof(chunk_crc));
+    write_buffer_to_file(output_file_ptr, &chunk_crc, sizeof(chunk_crc));
 
-    printf("Chunk Size : %u\n", data_chunk_size);
-    printf("Chunk Type : %.*s (0x%08X)\n", (int)sizeof(chunk_type), chunk_type, *(uint32_t *)chunk_type);
-    printf("Chunk CRC : 0x%08X\n", chunk_crc);
-    printf("--------------------------------------\n");
+    DEBUG_PRINT(("--------------------------------------\n"));
+    DEBUG_PRINT(("Chunk Data Size : %u\n", data_chunk_size));
+    DEBUG_PRINT(("Chunk Type : %.*s (0x%08X)\n", (int)sizeof(chunk_type), chunk_type, *(uint32_t *)chunk_type));
+    DEBUG_PRINT(("Chunk CRC : 0x%08X\n", chunk_crc));
+    DEBUG_PRINT(("--------------------------------------\n"));
 
     // stop reading chunks if hit the IEND chunk which marks
     // the end of chunks according to png specification.
     if (*(uint32_t *)chunk_type == IEND_CHUNK_TYPE)
     {
-      printf("Reached IEND Chunk.");
+      DEBUG_PRINT(("Reached IEND Chunk."));
       read_buffer = false;
     }
   }
   // closes file.
-  fclose(fileptr);
+  fclose(input_file_ptr);
+  fclose(output_file_ptr);
 
   // end time.
-  endTime = (float)clock() / CLOCKS_PER_SEC;
+  endTime = (double)clock() / CLOCKS_PER_SEC;
 
   printf("\nTotal duration it took: %lfms\n",
          endTime - startTime);
