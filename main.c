@@ -100,11 +100,11 @@ void write_buffer_to_file(FILE *fileptr, void *buffer, size_t buffer_size)
 /// @brief prints a buffer within a size limit.
 /// @param buffer
 /// @param size
-void print_buffer_slice(uint8_t *buffer, size_t size_cap)
+void print_buffer_slice(char *buffer, size_t size_cap)
 {
   for (size_t i = 0; i < size_cap; i++)
   {
-    printf("%u ", buffer[i]);
+    printf("%c", buffer[i]);
   }
 }
 
@@ -122,6 +122,16 @@ void reverse_bytes_order(void *buffer_, size_t size_cap)
   }
 }
 
+/// @brief Prints decoded result.
+/// @param buffer
+void print_decoded_result(char *buffer)
+{
+  printf("DECODED TEXT : ");
+  print_buffer_slice(buffer, sizeof(buffer));
+  printf("\n\n");
+}
+
+// ENTRY POINT.
 int main(int argc, char *argv[])
 {
 
@@ -265,17 +275,32 @@ int main(int argc, char *argv[])
     }
     else
     {
-      // when in decoding mode. No need to write output file we
-      // can just seek the chunk.
-      if (fseek(input_file_ptr, data_chunk_size, SEEK_CUR) != 0)
+      // decoding acutal text.
+      if (*(char *)chunk_type == *SECRET_CHUNK_TYPE)
       {
-        fprintf(stderr, "Failed to seek input file data chunk.");
-        exit(1);
+        DEBUG_PRINT(("Chunk found.\n"));
+        char *secret_data_buffer = (char *)malloc(data_chunk_size);
+        read_buffer_from_file(input_file_ptr, secret_data_buffer, data_chunk_size);
+        print_decoded_result(secret_data_buffer);
+        free(secret_data_buffer);
+        fclose(input_file_ptr);
+        exit(0);
+      }
+      else
+      {
+        // when decoding if the chunk type is not saNS we can just skip it.
+        if (fseek(input_file_ptr, data_chunk_size, SEEK_CUR) != 0)
+        {
+          fprintf(stderr, "Failed to seek input file data chunk.");
+          exit(1);
+        }
       }
     }
 
     uint32_t chunk_crc;
     read_buffer_from_file(input_file_ptr, &chunk_crc, sizeof(chunk_crc));
+
+    // secret chunk stuff.
     if (!DECODING_MODE)
     {
       write_buffer_to_file(output_file_ptr, &chunk_crc, sizeof(chunk_crc));
