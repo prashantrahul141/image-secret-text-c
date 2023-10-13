@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 char *get_help_message()
 {
@@ -11,7 +12,7 @@ Arguments:\n\
   return help_message;
 }
 
-void read_buffer_from_file(FILE *fileptr, uint8_t *buffer, size_t buffer_size)
+void read_buffer_from_file(FILE *fileptr, void *buffer, size_t buffer_size)
 {
   size_t n = fread(buffer, buffer_size, 1, fileptr);
   if (n != 1)
@@ -34,10 +35,21 @@ void read_buffer_from_file(FILE *fileptr, uint8_t *buffer, size_t buffer_size)
   }
 }
 
-void print_buffer_slice(uint8_t *buffer, size_t size)
+void print_buffer_slice(uint8_t *buffer, size_t size_cap)
 {
-  for (size_t i = 0; i < size; i++)
+  for (size_t i = 0; i < size_cap; i++)
   {
     printf("%u ", buffer[i]);
+  }
+}
+
+void reverse_bytes_order(void *buffer_, size_t size_cap)
+{
+  uint8_t *buffer = buffer_;
+  for (size_t i = 0; i < size_cap / 2; i++)
+  {
+    uint8_t t = buffer[i];
+    buffer[i] = buffer[size_cap - i - 1];
+    buffer[size_cap - i - 1] = t;
   }
 }
