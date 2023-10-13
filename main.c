@@ -8,7 +8,8 @@
 #include <stdint.h>
 
 // to enable debug mode.
-#define DEBUG
+// #define DEBUG
+
 // DEBUG print macro.
 #ifdef DEBUG
 #define DEBUG_PRINT(x) printf x
