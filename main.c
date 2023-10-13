@@ -125,10 +125,10 @@ void reverse_bytes_order(void *buffer_, size_t size_cap)
 
 /// @brief Prints decoded result.
 /// @param buffer
-void print_decoded_result(char *buffer)
+void print_decoded_result(char *buffer, size_t buffer_size)
 {
   printf("DECODED TEXT : ");
-  print_buffer_slice(buffer, sizeof(buffer));
+  print_buffer_slice(buffer, buffer_size);
   printf("\n\n");
 }
 
@@ -282,7 +282,7 @@ int main(int argc, char *argv[])
         DEBUG_PRINT(("Chunk found.\n"));
         char *secret_data_buffer = (char *)malloc(data_chunk_size);
         read_buffer_from_file(input_file_ptr, secret_data_buffer, data_chunk_size);
-        print_decoded_result(secret_data_buffer);
+        print_decoded_result(secret_data_buffer, data_chunk_size);
         free(secret_data_buffer);
         fclose(input_file_ptr);
         exit(0);
@@ -309,7 +309,7 @@ int main(int argc, char *argv[])
       // writing secret text to output image.
       if (*(uint32_t *)chunk_type == IHDR_CHUNK_TYPE)
       {
-        printf("ENCODING SECRET CHUNK\n");
+        printf("ENCODING SECRET CHUNK.\n");
 
         // writing  length chunk.
         uint32_t secret_chunk_size = strlen(encoding_data);
@@ -349,6 +349,7 @@ int main(int argc, char *argv[])
   fclose(input_file_ptr);
   if (!DECODING_MODE)
   {
+    printf("ENCODING COMPLETE.");
     fclose(output_file_ptr);
   }
 
