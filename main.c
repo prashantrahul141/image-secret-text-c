@@ -37,8 +37,11 @@ char *get_help_message()
   static char *help_message = "Storing Text in PNG Images using C. \
 \nFile format supported : PNG.\n\
 Arguments:\n\
-\t - k : Method to use.\
-\n\t - f : filename.\n";
+\t - f : filename. takes <file path> as paramter.\n\
+\t - e : Encode text from the given file.\n\
+\t - d : Decode text in the given file.\n\
+\t - t : Text which will be encoded in the image. takes <text> as paramters.";
+
   return help_message;
 }
 
@@ -187,6 +190,8 @@ int main(int argc, char *argv[])
   FILE *input_file_ptr = fopen(filename, "rb");
   FILE *output_file_ptr;
 
+  bool found_secret_chunk = false;
+
   if (!DECODING_MODE)
   {
     // in encoding mode.
@@ -280,6 +285,7 @@ int main(int argc, char *argv[])
       if (*(char *)chunk_type == *SECRET_CHUNK_TYPE)
       {
         DEBUG_PRINT(("Chunk found.\n"));
+        found_secret_chunk = true;
         char *secret_data_buffer = (char *)malloc(data_chunk_size);
         read_buffer_from_file(input_file_ptr, secret_data_buffer, data_chunk_size);
         print_decoded_result(secret_data_buffer, data_chunk_size);
@@ -351,6 +357,13 @@ int main(int argc, char *argv[])
   {
     printf("ENCODING COMPLETE.");
     fclose(output_file_ptr);
+  }
+  else
+  {
+    if (!found_secret_chunk)
+    {
+      printf("Could\'nt found any secret chunk in the given image, make sure the image you\'re providing does have a secret text created using this program.");
+    }
   }
 
   // end time.
