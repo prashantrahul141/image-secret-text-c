@@ -81,8 +81,8 @@ void reverse_bytes_order(void *buffer_, size_t size_cap)
 int main(int argc, char *argv[])
 {
   // for profiling.
-  clock_t startTime, endTime;
-  startTime = clock();
+  double startTime, endTime;
+  startTime = (float)clock() / CLOCKS_PER_SEC;
 
   // parsing command line arguments.
   int option;
@@ -169,9 +169,10 @@ int main(int argc, char *argv[])
   fclose(fileptr);
 
   // end time.
-  endTime = clock();
+  endTime = (float)clock() / CLOCKS_PER_SEC;
+
   printf("\nTotal duration it took: %lfms\n",
-         ((double)(endTime - startTime) * 1000.0) / CLOCKS_PER_SEC);
+         endTime - startTime);
 
   return 0;
 }
