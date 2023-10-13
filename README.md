@@ -3,6 +3,7 @@
 
 <p>
 Hide text in an ordinary looking png image, written in pure c without any external libraries. Supports PNG format images.
+Do read the PNG Specification (<a href="https://www.rfc-editor.org/rfc/rfc2083">here</a>) before trying to understand how it works.
 </p>
 
 
