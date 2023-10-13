@@ -22,7 +22,7 @@
 #define IHDR_CHUNK_TYPE 0x52444849
 #define IDAT_CHUNK_TYPE 0x54414449
 #define IEND_CHUNK_TYPE 0x444E4549
-#define SECRET_DATA_CHUNK_TYPE
+char *SECRET_CHUNK_TYPE = "saNS";
 
 #define PNG_SIGNATURE_SIZE 8
 const uint8_t PNG_SIGNATURE[PNG_SIGNATURE_SIZE] = {137, 80, 78, 71, 13, 10, 26, 10};
@@ -47,7 +47,7 @@ Arguments:\n\
 /// @param buffer_size
 void read_buffer_from_file(FILE *fileptr, void *buffer, size_t buffer_size)
 {
-  DEBUG_PRINT(("[READ_BUFFER_FROM_FILE] : %d\n", buffer_size));
+  DEBUG_PRINT(("[READ_BUFFER_FROM_FILE] : %d bytes\n", buffer_size));
   size_t n = fread(buffer, buffer_size, 1, fileptr);
   if (n != 1)
   {
@@ -75,8 +75,7 @@ void read_buffer_from_file(FILE *fileptr, void *buffer, size_t buffer_size)
 /// @param buffer_size
 void write_buffer_to_file(FILE *fileptr, void *buffer, size_t buffer_size)
 {
-
-  DEBUG_PRINT(("[WRITE_BUFFER_FROM_FILE] : %d\n", buffer_size));
+  DEBUG_PRINT(("[WRITE_BUFFER_FROM_FILE] : %d bytes\n", buffer_size));
   size_t n = fwrite(buffer, buffer_size, 1, fileptr);
   if (n != 1)
   {
@@ -152,7 +151,7 @@ int main(int argc, char *argv[])
       if (!DECODING_MODE)
       {
         encoding_data = optarg;
-        printf("DATA TO BE ENCODED IN THE IMAGE : %s (%d).\n", encoding_data, strlen(encoding_data));
+        printf("DATA TO BE ENCODED IN THE IMAGE : %s (%d bytes).\n", encoding_data, strlen(encoding_data));
       }
       break;
 
@@ -280,8 +279,31 @@ int main(int argc, char *argv[])
     if (!DECODING_MODE)
     {
       write_buffer_to_file(output_file_ptr, &chunk_crc, sizeof(chunk_crc));
+
+      // writing secret text to output image.
+      if (*(uint32_t *)chunk_type == IHDR_CHUNK_TYPE)
+      {
+        printf("ENCODING SECRET CHUNK\n");
+
+        // writing  length chunk.
+        uint32_t secret_chunk_size = strlen(encoding_data);
+        reverse_bytes_order(&secret_chunk_size, sizeof(secret_chunk_size));
+        write_buffer_to_file(output_file_ptr, &secret_chunk_size, sizeof(secret_chunk_size));
+        reverse_bytes_order(&secret_chunk_size, sizeof(secret_chunk_size));
+
+        // writing  type chunk.
+        write_buffer_to_file(output_file_ptr, SECRET_CHUNK_TYPE, 4);
+
+        // writing  data chunk.
+        uint32_t secret_chunk_crc = 0;
+        write_buffer_to_file(output_file_ptr, encoding_data, secret_chunk_size);
+
+        // writing crc.
+        write_buffer_to_file(output_file_ptr, &secret_chunk_crc, sizeof(secret_chunk_crc));
+      }
     }
 
+    // printing some info about the current chunk.
     DEBUG_PRINT(("--------------------------------------\n"));
     DEBUG_PRINT(("Chunk Data Size : %u\n", data_chunk_size));
     DEBUG_PRINT(("Chunk Type : %.*s (0x%08X)\n", (int)sizeof(chunk_type), chunk_type, *(uint32_t *)chunk_type));
