@@ -1,3 +1,8 @@
+/*
+Original Repo: https://github.com/prashantrahul141/image-secret-text-c
+The PNG Specification : https://www.rfc-editor.org/rfc/rfc2083
+*/
+
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
