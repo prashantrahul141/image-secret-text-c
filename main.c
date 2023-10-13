@@ -362,14 +362,13 @@ int main(int argc, char *argv[])
   {
     if (!found_secret_chunk)
     {
-      printf("Could\'nt found any secret chunk in the given image, make sure the image you\'re providing does have a secret text created using this program.");
+      printf("Could\'nt found any secret chunk in the given image, make sure the image you\'re providing does have a secret text created using this program.\n");
     }
   }
 
   // end time.
   endTime = (double)clock() / CLOCKS_PER_SEC;
-
-  printf("\nTotal duration it took: %lfms\n",
+  printf("Total duration it took: %lfms\n",
          endTime - startTime);
 
   return 0;
