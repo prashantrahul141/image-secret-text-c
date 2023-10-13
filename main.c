@@ -15,6 +15,7 @@
 #define PNG_SIGNATURE_SIZE 8
 const uint8_t PNG_SIGNATURE[PNG_SIGNATURE_SIZE] = {137, 80, 78, 71, 13, 10, 26, 10};
 
+/// @brief returns help message string.
 char *get_help_message()
 {
   static char *help_message = "Storing Text in PNG Images using C. \
@@ -25,6 +26,10 @@ Arguments:\n\
   return help_message;
 }
 
+/// @brief  buffer from a file.
+/// @param fileptr
+/// @param buffer
+/// @param buffer_size
 void read_buffer_from_file(FILE *fileptr, void *buffer, size_t buffer_size)
 {
   size_t n = fread(buffer, buffer_size, 1, fileptr);
@@ -48,6 +53,9 @@ void read_buffer_from_file(FILE *fileptr, void *buffer, size_t buffer_size)
   }
 }
 
+/// @brief prints a buffer within a size limit.
+/// @param buffer
+/// @param size
 void print_buffer_slice(uint8_t *buffer, size_t size_cap)
 {
   for (size_t i = 0; i < size_cap; i++)
@@ -56,6 +64,9 @@ void print_buffer_slice(uint8_t *buffer, size_t size_cap)
   }
 }
 
+/// @brief Reverse bytes in a memory buffer.
+/// @param buffer
+/// @param size
 void reverse_bytes_order(void *buffer_, size_t size_cap)
 {
   uint8_t *buffer = buffer_;
