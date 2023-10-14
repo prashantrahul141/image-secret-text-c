@@ -1,6 +1,6 @@
 /*
-Original Repo: https://github.com/prashantrahul141/image-secret-text-c
-The PNG Specification : https://www.rfc-editor.org/rfc/rfc2083
+   Original Repo : https://github.com/prashantrahul141/image-secret-text-c
+   The PNG Specification : https://www.rfc-editor.org/rfc/rfc2083
 */
 
 #include <stdio.h>
@@ -318,7 +318,7 @@ int main(int argc, char *argv[])
       write_buffer_to_file(output_file_ptr, &chunk_crc, sizeof(chunk_crc));
 
       // writing secret text to output image.
-      if (*(uint32_t *)chunk_type == IHDR_CHUNK_TYPE)
+      if (*(uint32_t *)chunk_type == IDAT_CHUNK_TYPE)
       {
         printf("ENCODING SECRET CHUNK.\n");
 
@@ -373,7 +373,7 @@ int main(int argc, char *argv[])
 
   // end time.
   endTime = (double)clock() / CLOCKS_PER_SEC;
-  printf("Total duration it took: %lfms\n",
+  printf("Total duration it took: %lfs\n",
          endTime - startTime);
 
   return 0;
