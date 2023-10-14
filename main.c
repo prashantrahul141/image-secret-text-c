@@ -144,6 +144,12 @@ void print_decoded_result(char *buffer, size_t buffer_size)
 int main(int argc, char *argv[])
 {
 
+  if (argc <= 1)
+  {
+    printf(get_help_message());
+    exit(0);
+  }
+
   // for profiling.
   double startTime, endTime;
   startTime = (double)clock() / CLOCKS_PER_SEC;
