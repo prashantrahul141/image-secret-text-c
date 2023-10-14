@@ -1,3 +1,3 @@
 @echo Building from source...
-@gcc -Wall -Wextra  main.c -o build/main
-@echo compilation complete: main.exe
+mkdir build
+gcc main.c -o build/main -O3 
