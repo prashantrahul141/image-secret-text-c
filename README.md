@@ -9,6 +9,17 @@ Do read the PNG Specification (<a href="https://www.rfc-editor.org/rfc/rfc2083">
 
 <h3>Usage</h2>
 
+```sh
+Storing Text in PNG Images using C.
+File format supported : PNG.
+Arguments:
+         - f : filename. takes <file path> as paramter.
+         - e : Encode text from the given file.
+         - d : Decode text in the given file.
+         - t : Text which will be encoded in the image. takes <text> as paramters.
+```
+
+
 1. Encoding text in a png image.
 ```sh
 main -f demo.png -e -t 'this text will get encoded'
