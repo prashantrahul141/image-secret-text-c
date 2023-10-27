@@ -12,7 +12,7 @@
 #include <unistd.h>
 
 // to enable debug mode.
-#define DEBUG
+// #define DEBUG
 
 // DEBUG print macro.
 #ifdef DEBUG
