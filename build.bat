@@ -1,3 +1,0 @@
-@echo Building from source...
-mkdir build
-gcc main.c -o build/main -O3 
