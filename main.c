@@ -235,7 +235,7 @@ int main(int argc, char *argv[]) {
                    iterations, sizeof(idat_chunk_copy_data), data_chunk_size));
       if (iterations > 1.0f) {
         // when there are more data than holding capacity.
-        for (;;) {
+        while (true) {
           if (temp_data_chunk_size > sizeof(idat_chunk_copy_data)) {
             read_buffer_from_file(input_file_ptr, &idat_chunk_copy_data,
                                   sizeof(idat_chunk_copy_data));
