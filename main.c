@@ -310,10 +310,20 @@ int main(int argc, char *argv[]) {
         write_buffer_to_file(output_file_ptr, SECRET_CHUNK_TYPE, 4);
 
         // writing  data chunk.
-        uint32_t secret_chunk_crc = 0;
         write_buffer_to_file(output_file_ptr, encoding_data, secret_chunk_size);
 
-        // writing crc.
+        // crc of the data.
+        // combining type and data chunks.
+        int new_buffer_size = strlen(SECRET_CHUNK_TYPE) + strlen(encoding_data);
+        uint8_t *new_buffer = (char *)malloc(new_buffer_size);
+        strcpy(new_buffer, SECRET_CHUNK_TYPE);
+        strcat(new_buffer, encoding_data);
+
+        // crc of the new buffer ( type + data)
+        uint32_t secret_chunk_crc = crc(new_buffer, new_buffer_size);
+        // reverse bytes.
+        reverse_bytes_order(&secret_chunk_crc, sizeof(secret_chunk_crc));
+
         write_buffer_to_file(output_file_ptr, &secret_chunk_crc,
                              sizeof(secret_chunk_crc));
 
