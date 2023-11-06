@@ -182,7 +182,10 @@ int main(int argc, char *argv[]) {
   FILE *input_file_ptr = fopen(filename, "rb");
   FILE *output_file_ptr;
 
-  bool found_secret_chunk = false;
+  if (!input_file_ptr) {
+    fprintf(stderr, "Could not open input file. exiting.\n");
+    exit(1);
+  }
 
   if (!DECODING_MODE) {
     // in encoding mode.
@@ -212,6 +215,7 @@ int main(int argc, char *argv[]) {
 
   bool read_buffer = true;
   bool done_encoding = false;
+  bool found_secret_chunk = false;
   while (read_buffer) {
     // reading length.
     uint32_t data_chunk_size;
