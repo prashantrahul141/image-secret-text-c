@@ -119,6 +119,11 @@ void print_decoded_result(char *buffer, size_t buffer_size) {
   printf("\n\n");
 }
 
+/// @brief Calculates CRC.
+/// @param buffer
+/// @param buffer_size
+unsigned long crc(uint8_t *buffer, size_t buffer_size) { return 0; }
+
 // ENTRY POINT.
 int main(int argc, char *argv[]) {
 
