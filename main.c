@@ -325,6 +325,8 @@ int main(int argc, char *argv[]) {
 
         // crc of the new buffer ( type + data)
         uint32_t secret_chunk_crc = crc(new_buffer, new_buffer_size);
+        free(new_buffer);
+
         // reverse bytes.
         reverse_bytes_order(&secret_chunk_crc, sizeof(secret_chunk_crc));
 
