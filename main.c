@@ -318,12 +318,13 @@ int main(int argc, char *argv[]) {
 
         // crc of the data.
         // combining type and data chunks.
-        int new_buffer_size = strlen(SECRET_CHUNK_TYPE) + strlen(encoding_data);
-        uint8_t *new_buffer = (char *)malloc(new_buffer_size);
-        strcpy(new_buffer, SECRET_CHUNK_TYPE);
-        strcat(new_buffer, encoding_data);
+        uint32_t new_buffer_size =
+            strlen(SECRET_CHUNK_TYPE) + strlen(encoding_data);
+        uint8_t *new_buffer = (uint8_t *)malloc(new_buffer_size);
+        strcpy((char *)new_buffer, SECRET_CHUNK_TYPE);
+        strcat((char *)new_buffer, encoding_data);
 
-        // crc of the new buffer ( type + data)
+        // crc of the new buffer ( chunk type + chunk data)
         uint32_t secret_chunk_crc = crc(new_buffer, new_buffer_size);
         free(new_buffer);
 
