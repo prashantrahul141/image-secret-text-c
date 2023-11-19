@@ -3,6 +3,7 @@
    The PNG Specification : https://www.rfc-editor.org/rfc/rfc2083
 */
 
+#include <assert.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -26,6 +27,7 @@
 #define IHDR_CHUNK_TYPE 0x52444849
 #define IDAT_CHUNK_TYPE 0x54414449
 #define IEND_CHUNK_TYPE 0x444E4549
+#define CRC_POLYNOMIAL 0x104C11DB7
 char *SECRET_CHUNK_TYPE = "saNS";
 
 #define PNG_SIGNATURE_SIZE 8
