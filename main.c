@@ -151,6 +151,7 @@ void print_decoded_result(char *buffer, size_t buffer_size) {
 /// @param buffer_size
 unsigned long crc(uint8_t *buffer, size_t buffer_size) { return 0; }
 /// @brief reverse bits of a mem buffer.
+/// @brief reverse bits of a single byte.
 /// @param n
 unsigned int reverse_bits(unsigned int b) {
   b = (b & 0xF0) >> 4 | (b & 0x0F) << 4;
@@ -159,7 +160,7 @@ unsigned int reverse_bits(unsigned int b) {
   return b;
 }
 
-/// @bried reverse bits of a single byte.
+/// @brief reverse bits of a mem buffer.
 /// @param buf
 /// @param buffer_len
 char *reverse_each_byte(char *buf, size_t buffer_len) {
