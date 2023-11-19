@@ -48,6 +48,30 @@ Arguments:\n\
   printf("%s", help_message);
 }
 
+/// @brief helper function to print bits of a mem buffer.
+/// @param num
+void print_bits_of_byte(char num) {
+  for (int bit = 0; bit < (sizeof(char) * 8); bit++) {
+    printf("%i", num & 0x01);
+    num = num >> 1;
+  }
+  printf(" ");
+}
+
+/// @brief helper function to print bits of a byte.
+/// @param unsigned int num
+void print_bits(void *buff, size_t len) {
+  char *buff_local = buff;
+  for (int byte = 0; byte < len; byte++) {
+    print_bits_of_byte(*buff_local);
+    buff_local++;
+  }
+  printf("\n");
+}
+
+/// @brief helper function to bits of all bytes from a mem buffer.
+void print_all_bits(void *buf, size_t size) {}
+
 /// @brief read buffer from a file.
 /// @param fileptr
 /// @param buffer
