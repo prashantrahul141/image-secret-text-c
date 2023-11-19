@@ -149,6 +149,15 @@ void print_decoded_result(char *buffer, size_t buffer_size) {
 /// @param buffer
 /// @param buffer_size
 unsigned long crc(uint8_t *buffer, size_t buffer_size) { return 0; }
+/// @brief reverse bits of a mem buffer.
+/// @param n
+unsigned int reverse_bits(unsigned int b) {
+  b = (b & 0xF0) >> 4 | (b & 0x0F) << 4;
+  b = (b & 0xCC) >> 2 | (b & 0x33) << 2;
+  b = (b & 0xAA) >> 1 | (b & 0x55) << 1;
+  return b;
+}
+
 
 // ENTRY POINT.
 int main(int argc, char *argv[]) {
