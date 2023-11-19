@@ -50,29 +50,29 @@ Arguments:\n\
   printf("%s", help_message);
 }
 
-/// @brief helper function to print bits of a mem buffer.
+/// @brief helper function to print bits of a char.
 /// @param num
-void print_bits_of_byte(char num) {
-  for (int bit = 0; bit < (sizeof(char) * 8); bit++) {
-    printf("%i", num & 0x01);
-    num = num >> 1;
+void print_bits_of_byte(void *p) {
+  unsigned char *q = p;
+  for (int iBit = CHAR_BIT; iBit > 0; --iBit) {
+    int bit = q[0] >> (iBit - 1);
+    putchar('0' + (bit & 1));
   }
-  printf(" ");
 }
 
-/// @brief helper function to print bits of a byte.
+/// @brief helper function to print bits of a mem buff.
 /// @param unsigned int num
 void print_bits(void *buff, size_t len) {
   char *buff_local = buff;
   for (int byte = 0; byte < len; byte++) {
-    print_bits_of_byte(*buff_local);
+    printf("(%d)", *buff_local);
+    print_bits_of_byte(buff_local);
+    printf(" ");
     buff_local++;
   }
-  printf("\n");
+  printf("\n\n");
 }
 
-/// @brief helper function to bits of all bytes from a mem buffer.
-void print_all_bits(void *buf, size_t size) {}
 
 /// @brief read buffer from a file.
 /// @param fileptr
