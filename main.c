@@ -161,16 +161,16 @@ unsigned int reverse_bits(unsigned int b) {
 /// @bried reverse bits of a single byte.
 /// @param buf
 /// @param buffer_len
-void reverse_each_byte(char *buf, size_t buffer_len) {
-  char bytes_array[buffer_len];
+char *reverse_each_byte(char *buf, size_t buffer_len) {
+  char *bytes_array = malloc(sizeof(char) * buffer_len);
   char *byte = buf;
 
   for (size_t i = 0; i < buffer_len; i++) {
     char reversed_byte = reverse_bits(*byte);
-    print_bits(&reversed_byte, 1);
     bytes_array[i] = reversed_byte;
     byte++;
   }
+  return bytes_array;
 }
 
 // ENTRY POINT.
