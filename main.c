@@ -146,11 +146,6 @@ void print_decoded_result(char *buffer, size_t buffer_size) {
   printf("\n\n");
 }
 
-/// @brief Calculates CRC.
-/// @param buffer
-/// @param buffer_size
-unsigned long crc(uint8_t *buffer, size_t buffer_size) { return 0; }
-/// @brief reverse bits of a mem buffer.
 /// @brief reverse bits of a single byte.
 /// @param n
 unsigned int reverse_bits(unsigned int b) {
@@ -198,6 +193,14 @@ void XOR_first_bytes(void *buf) {
   // little ugly
   // converts void ptr to int ptr to the buffer.
   *(int *)buf = *(int *)buf ^ LARGEST_32_BIT_VALUE;
+}
+
+/// @brief Calculates CRC.
+/// @param buffer
+/// @param buffer_size
+unsigned long crc(uint8_t *buffer, size_t buffer_size) {
+  int crc = 0;
+  return 0;
 }
 
 // ENTRY POINT.
