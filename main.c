@@ -158,7 +158,7 @@ uint32_t reverse_bits(uint32_t b) {
 /// @brief reverse bits of a mem buffer.
 /// @param buf
 /// @param buffer_len
-char *reverse_each_byte(char *buf, size_t buffer_len) {
+char *reverse_each_byte(void *buf, size_t buffer_len) {
   char *bytes_array = malloc(sizeof(char) * buffer_len);
   char *byte = buf;
 
