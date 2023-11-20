@@ -58,7 +58,7 @@ void print_bits_of_byte(void *p) {
   unsigned char *q = p;
   for (int iBit = CHAR_BIT; iBit > 0; --iBit) {
     int bit = q[0] >> (iBit - 1);
-    putchar('0' + (bit & 1));
+    DEBUG_PRINT(("%c", '0' + (bit & 1)));
   }
 }
 
@@ -67,12 +67,12 @@ void print_bits_of_byte(void *p) {
 void print_bits(void *buff, size_t len) {
   char *buff_local = buff;
   for (int byte = 0; byte < len; byte++) {
-    printf("(%d)", *buff_local);
+    DEBUG_PRINT(("(%d)", *buff_local));
     print_bits_of_byte(buff_local);
     printf(" ");
     buff_local++;
   }
-  printf("\n\n");
+  DEBUG_PRINT(("\n\n"));
 }
 
 /// @brief read buffer from a file.
