@@ -148,7 +148,7 @@ void print_decoded_result(char *buffer, size_t buffer_size) {
 
 /// @brief reverse bits of a single byte.
 /// @param n
-unsigned int reverse_bits(unsigned int b) {
+uint32_t reverse_bits(uint32_t b) {
   b = (b & 0xF0) >> 4 | (b & 0x0F) << 4;
   b = (b & 0xCC) >> 2 | (b & 0x33) << 2;
   b = (b & 0xAA) >> 1 | (b & 0x55) << 1;
@@ -198,7 +198,7 @@ void XOR_first_bytes(void *buf) {
 /// @brief Calculates CRC.
 /// @param buffer
 /// @param buffer_size
-unsigned long crc(void *buf, size_t buf_len) {
+uint64_t crc(void *buf, size_t buf_len) {
   DEBUG_PRINT(("original bytes: \n"));
   print_bits(buf, buf_len);
 
