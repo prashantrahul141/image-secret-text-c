@@ -173,6 +173,10 @@ char *reverse_each_byte(char *buf, size_t buffer_len) {
     bytes_array[i] = reversed_byte;
     byte++;
   }
+
+  return bytes_array;
+}
+
 /// @brief adds 32 zeroes at the end of a buffer.
 /// @param buf
 /// @param buffer_len
