@@ -194,6 +194,13 @@ char *append_zeros_to_buffer(char *buf, size_t buffer_len) {
   return bytes_array;
 }
 
+/// @brief XOR first 4 bytes with LARGEST_32_BIT_VALUE
+/// @param buf
+void XOR_first_bytes(void *buf) {
+  // little ugly
+  // converts void ptr to int ptr to the buffer.
+  *(int *)buf = *(int *)buf ^ LARGEST_32_BIT_VALUE;
+}
 // ENTRY POINT.
 int main(int argc, char *argv[]) {
 
