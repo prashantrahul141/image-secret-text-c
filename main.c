@@ -75,7 +75,6 @@ void print_bits(void *buff, size_t len) {
   printf("\n\n");
 }
 
-
 /// @brief read buffer from a file.
 /// @param fileptr
 /// @param buffer
@@ -181,7 +180,6 @@ char *reverse_each_byte(char *buf, size_t buffer_len) {
 /// @param buf
 /// @param buffer_len
 char *append_zeros_to_buffer(char *buf, size_t buffer_len) {
-
   size_t new_size = (sizeof(char) * buffer_len) + sizeof(int);
   char *bytes_array = malloc(new_size);
 
@@ -201,6 +199,7 @@ void XOR_first_bytes(void *buf) {
   // converts void ptr to int ptr to the buffer.
   *(int *)buf = *(int *)buf ^ LARGEST_32_BIT_VALUE;
 }
+
 // ENTRY POINT.
 int main(int argc, char *argv[]) {
 
