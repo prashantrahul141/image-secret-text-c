@@ -221,8 +221,16 @@ uint64_t crc(void *buf, size_t buf_len) {
   DEBUG_PRINT(("[CRC] Xored appeneded bytes: \n"));
   print_bits(appended_buffer, buf_len + 4);
 
-  int crc = 0;
-  return crc;
+  uint64_t remainder = long_divison(appended_buffer);
+  DEBUG_PRINT(("[CRC] Before remainder : (%lu)\n", remainder));
+  print_bits(&remainder, sizeof(remainder));
+
+  remainder = remainder ^ LARGEST_32_BIT_VALUE;
+  DEBUG_PRINT(("[CRC] After xor remainder (%lu): \n", remainder));
+  print_bits(&remainder, sizeof(remainder));
+
+  DEBUG_PRINT(("[CRC] Calculated CRC : %lu  \n", remainder));
+  return remainder;
 }
 
 // ENTRY POINT.
