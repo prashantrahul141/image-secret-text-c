@@ -57,6 +57,8 @@ Arguments:\n\
 void print_bits_of_byte(void *p) {
   unsigned char *q = p;
   for (int iBit = CHAR_BIT; iBit > 0; --iBit) {
+#pragma GCC diagnostic ignored                                                 \
+    "-Wunused-variable" // disable warning for bit variable.
     int bit = q[0] >> (iBit - 1);
     DEBUG_PRINT(("%c", '0' + (bit & 1)));
   }
@@ -69,7 +71,7 @@ void print_bits(void *buff, size_t len) {
   for (int byte = 0; byte < len; byte++) {
     DEBUG_PRINT(("(%d)", *buff_local));
     print_bits_of_byte(buff_local);
-    printf(" ");
+    DEBUG_PRINT((" "));
     buff_local++;
   }
   DEBUG_PRINT(("\n\n"));
@@ -199,20 +201,20 @@ void XOR_first_bytes(void *buf) {
 /// @param buffer
 /// @param buffer_size
 uint64_t crc(void *buf, size_t buf_len) {
-  DEBUG_PRINT(("original bytes: \n"));
+  DEBUG_PRINT(("[CRC] Original bytes: \n"));
   print_bits(buf, buf_len);
 
   char *reversed_bytes = reverse_each_byte(buf, buf_len);
-  DEBUG_PRINT(("reversed bytes: \n"));
+  DEBUG_PRINT(("[CRC] Reversed bytes: \n"));
   print_bits(reversed_bytes, buf_len);
 
   char *appended_buffer = append_zeros_to_buffer(reversed_bytes, buf_len);
   free(reversed_bytes); // free reversed bytes because we dont need it anymore.
-  DEBUG_PRINT(("appended bytes: \n"));
+  DEBUG_PRINT(("[CRC] Appended bytes: \n"));
   print_bits(appended_buffer, buf_len + 4);
 
   XOR_first_bytes(appended_buffer);
-  DEBUG_PRINT(("xored appeneded bytes: \n"));
+  DEBUG_PRINT(("[CRC] Xored appeneded bytes: \n"));
   print_bits(appended_buffer, buf_len + 4);
 
   int crc = 0;
