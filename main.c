@@ -197,6 +197,10 @@ void XOR_first_bytes(void *buf) {
   *(int *)buf = *(int *)buf ^ LARGEST_32_BIT_VALUE;
 }
 
+/// @brief long divison of bits.
+/// @param buf
+uint32_t long_divison(void *buf) { return 0; }
+
 /// @brief Calculates CRC.
 /// @param buffer
 /// @param buffer_size
