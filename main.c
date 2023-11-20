@@ -198,9 +198,25 @@ void XOR_first_bytes(void *buf) {
 /// @brief Calculates CRC.
 /// @param buffer
 /// @param buffer_size
-unsigned long crc(uint8_t *buffer, size_t buffer_size) {
+unsigned long crc(void *buf, size_t buf_len) {
+  DEBUG_PRINT(("original bytes: \n"));
+  print_bits(buf, buf_len);
+
+  char *reversed_bytes = reverse_each_byte(buf, buf_len);
+  DEBUG_PRINT(("reversed bytes: \n"));
+  print_bits(reversed_bytes, buf_len);
+
+  char *appended_buffer = append_zeros_to_buffer(reversed_bytes, buf_len);
+  free(reversed_bytes); // free reversed bytes because we dont need it anymore.
+  DEBUG_PRINT(("appended bytes: \n"));
+  print_bits(appended_buffer, buf_len + 4);
+
+  XOR_first_bytes(appended_buffer);
+  DEBUG_PRINT(("xored appeneded bytes: \n"));
+  print_bits(appended_buffer, buf_len + 4);
+
   int crc = 0;
-  return 0;
+  return crc;
 }
 
 // ENTRY POINT.
