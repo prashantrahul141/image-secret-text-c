@@ -173,6 +173,20 @@ char *reverse_each_byte(char *buf, size_t buffer_len) {
     bytes_array[i] = reversed_byte;
     byte++;
   }
+/// @brief adds 32 zeroes at the end of a buffer.
+/// @param buf
+/// @param buffer_len
+char *append_zeros_to_buffer(char *buf, size_t buffer_len) {
+
+  size_t new_size = (sizeof(char) * buffer_len) + sizeof(int);
+  char *bytes_array = malloc(new_size);
+
+  memcpy(bytes_array, buf, buffer_len);
+  *(bytes_array + buffer_len) = (char)0;
+  *(bytes_array + buffer_len + 1) = (char)0;
+  *(bytes_array + buffer_len + 2) = (char)0;
+  *(bytes_array + buffer_len + 3) = (char)0;
+
   return bytes_array;
 }
 
