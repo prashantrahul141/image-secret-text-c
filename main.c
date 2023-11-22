@@ -148,12 +148,38 @@ void print_decoded_result(char *buffer, size_t buffer_size) {
   printf("\n\n");
 }
 
+/// @brief reverse bits of type uin32_t.
+/// @param b
+uint32_t reverse_bits_int(uint32_t b) {
+  // 0xFFFF0000 : 11111111111111110000000000000000
+  // 0x0000FFFF : 00000000000000001111111111111111
+  b = (b & 0xFFFF0000) >> 16 | (b & 0x0000FFFF) << 16;
+
+  // 0xFF00FF00 : 11111111000000001111111100000000
+  // 0x00FF00FF : 00000000111111110000000011111111
+  b = (b & 0xFF00FF00) >> 8 | (b & 0x00FF00FF) << 8;
+
+  // 0xF0F0F0F0 : 11110000111100001111000011110000
+  // 0x0F0F0F0F : 00001111000011110000111100001111
+  b = (b & 0xF0F0F0F0) >> 4 | (b & 0x0F0F0F0F) << 4;
+
+  // 0xCCCCCCCC : 11001100110011001100110011001100
+  // 0x33333333 : 00110011001100110011001100110011
+  b = (b & 0xCCCCCCCC) >> 2 | (b & 0x33333333) << 2;
+
+  // 0xAAAAAAAA : 10101010101010101010101010101010
+  // 0x55555555 : 01010101010101010101010101010101
+  b = (b & 0xAAAAAAAA) >> 1 | (b & 0x55555555) << 1;
+
+  return b;
+}
+
 /// @brief reverse bits of a single byte.
 /// @param n
-uint32_t reverse_bits(uint32_t b) {
-  b = (b & 0xF0) >> 4 | (b & 0x0F) << 4;
-  b = (b & 0xCC) >> 2 | (b & 0x33) << 2;
-  b = (b & 0xAA) >> 1 | (b & 0x55) << 1;
+uint8_t reverse_bits_char(uint8_t b) {
+  b = (b & 0xF0) >> 4 | (b & 0x0F) << 4; // 0xF0 : 11110000 ; 0x0F : 00001111
+  b = (b & 0xCC) >> 2 | (b & 0x33) << 2; // 0xCC : 11001100 ; 0x33 : 00110011
+  b = (b & 0xAA) >> 1 | (b & 0x55) << 1; // 0xAA : 10101010 ; 0x55 : 01010101
   return b;
 }
 
@@ -165,7 +191,7 @@ char *reverse_each_byte(void *buf, size_t buffer_len) {
   char *byte = buf;
 
   for (size_t i = 0; i < buffer_len; i++) {
-    char reversed_byte = reverse_bits(*byte);
+    char reversed_byte = reverse_bits_char(*byte);
     bytes_array[i] = reversed_byte;
     byte++;
   }
