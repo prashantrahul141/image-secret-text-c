@@ -230,7 +230,7 @@ uint32_t long_divison(void *buf) { return 0; }
 /// @brief Calculates CRC.
 /// @param buffer
 /// @param buffer_size
-uint64_t crc(void *buf, size_t buf_len) {
+uint32_t crc(void *buf, size_t buf_len) {
   DEBUG_PRINT(("[CRC] Original bytes: \n"));
   print_bits(buf, buf_len);
 
@@ -247,15 +247,15 @@ uint64_t crc(void *buf, size_t buf_len) {
   DEBUG_PRINT(("[CRC] Xored appeneded bytes: \n"));
   print_bits(appended_buffer, buf_len + 4);
 
-  uint64_t remainder = long_divison(appended_buffer);
-  DEBUG_PRINT(("[CRC] Before remainder : (%lu)\n", remainder));
+  uint32_t remainder = long_divison(appended_buffer);
+  DEBUG_PRINT(("[CRC] Before remainder : (%u)\n", remainder));
   print_bits(&remainder, sizeof(remainder));
 
   remainder = remainder ^ LARGEST_32_BIT_VALUE;
-  DEBUG_PRINT(("[CRC] After xor remainder (%lu): \n", remainder));
+  DEBUG_PRINT(("[CRC] After xor remainder (%u): \n", remainder));
   print_bits(&remainder, sizeof(remainder));
 
-  DEBUG_PRINT(("[CRC] Calculated CRC : %lu  \n", remainder));
+  DEBUG_PRINT(("[CRC] Calculated CRC : %u  \n", remainder));
   return remainder;
 }
 
