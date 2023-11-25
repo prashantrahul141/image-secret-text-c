@@ -38,6 +38,8 @@ char *SECRET_CHUNK_TYPE = "saNS";
 const uint8_t PNG_SIGNATURE[PNG_SIGNATURE_SIZE] = {137, 80, 78, 71,
                                                    13,  10, 26, 10};
 
+uint32_t crc_table[256];
+
 #define IDAT_CHUNK_COPY_SIZE (32 * 1024)
 uint32_t idat_chunk_copy_data[IDAT_CHUNK_COPY_SIZE];
 
@@ -59,8 +61,8 @@ Arguments:\n\
 void print_bits_of_byte(void *p) {
   unsigned char *q = p;
   for (int iBit = CHAR_BIT; iBit > 0; --iBit) {
-#pragma GCC diagnostic ignored                                                 \
-    "-Wunused-variable" // disable warning for bit variable.
+    // disable warning for bit variable.
+#pragma GCC diagnostic ignored "-Wunused-variable"
     int bit = q[0] >> (iBit - 1);
     DEBUG_PRINT(("%c", '0' + (bit & 1)));
   }
@@ -71,7 +73,7 @@ void print_bits_of_byte(void *p) {
 void print_bits(void *buff, size_t len) {
   char *buff_local = buff;
   for (int byte = 0; byte < len; byte++) {
-    DEBUG_PRINT(("(%d)", *buff_local));
+    // DEBUG_PRINT(("(%d)", *buff_local));
     print_bits_of_byte(buff_local);
     DEBUG_PRINT((" "));
     buff_local++;
@@ -150,32 +152,6 @@ void print_decoded_result(char *buffer, size_t buffer_size) {
   printf("\n\n");
 }
 
-/// @brief reverse bits of type uin32_t.
-/// @param b
-uint32_t reverse_bits_int(uint32_t b) {
-  // 0xFFFF0000 : 11111111111111110000000000000000
-  // 0x0000FFFF : 00000000000000001111111111111111
-  b = (b & 0xFFFF0000) >> 16 | (b & 0x0000FFFF) << 16;
-
-  // 0xFF00FF00 : 11111111000000001111111100000000
-  // 0x00FF00FF : 00000000111111110000000011111111
-  b = (b & 0xFF00FF00) >> 8 | (b & 0x00FF00FF) << 8;
-
-  // 0xF0F0F0F0 : 11110000111100001111000011110000
-  // 0x0F0F0F0F : 00001111000011110000111100001111
-  b = (b & 0xF0F0F0F0) >> 4 | (b & 0x0F0F0F0F) << 4;
-
-  // 0xCCCCCCCC : 11001100110011001100110011001100
-  // 0x33333333 : 00110011001100110011001100110011
-  b = (b & 0xCCCCCCCC) >> 2 | (b & 0x33333333) << 2;
-
-  // 0xAAAAAAAA : 10101010101010101010101010101010
-  // 0x55555555 : 01010101010101010101010101010101
-  b = (b & 0xAAAAAAAA) >> 1 | (b & 0x55555555) << 1;
-
-  return b;
-}
-
 /// @brief reverse bits of a single byte.
 /// @param n
 uint8_t reverse_bits_char(uint8_t b) {
@@ -185,85 +161,42 @@ uint8_t reverse_bits_char(uint8_t b) {
   return b;
 }
 
-/// @brief reverse bits of a mem buffer.
-/// @param buf
-/// @param buffer_len
-char *reverse_each_byte(void *buf, size_t buffer_len) {
-  char *bytes_array = malloc(sizeof(char) * buffer_len);
-  char *byte = buf;
-
-  for (size_t i = 0; i < buffer_len; i++) {
-    char reversed_byte = reverse_bits_char(*byte);
-    bytes_array[i] = reversed_byte;
-    byte++;
+/// @brief precomputes crc table.
+void make_crc_table() {
+  for (int32_t n = 0; n < 256; n++) {
+    uint32_t c = (unsigned long)n;
+    for (int32_t k = 0; k < 8; k++) {
+      if (c & 1)
+        c = 0xedb88320L ^ (c >> 1);
+      else
+        c = c >> 1;
+    }
+    crc_table[n] = c;
   }
-
-  return bytes_array;
 }
 
-/// @brief adds 32 zeroes at the end of a buffer.
+/// @brief update a running CRC with the bytes buf[0..len-1]
+/// the crc should be init at all 1's
+/// @param crc
 /// @param buf
-/// @param buffer_len
-char *append_zeros_to_buffer(char *buf, size_t buffer_len) {
-  size_t new_size = (sizeof(char) * buffer_len) + sizeof(int);
-  char *bytes_array = malloc(new_size);
-
-  memcpy(bytes_array, buf, buffer_len);
-  *(bytes_array + buffer_len) = (char)0;
-  *(bytes_array + buffer_len + 1) = (char)0;
-  *(bytes_array + buffer_len + 2) = (char)0;
-  *(bytes_array + buffer_len + 3) = (char)0;
-
-  return bytes_array;
+/// @param len
+uint32_t update_crc(uint32_t crc, uint8_t *buf, int32_t len) {
+  uint32_t c = crc;
+  for (size_t n = 0; n < len; n++) {
+    c = crc_table[(c ^ buf[n]) & 0xff] ^ (c >> 8);
+  }
+  return c;
 }
 
-/// @brief XOR first 4 bytes with LARGEST_32_BIT_VALUE
+/// @brief looks up crc and returns it
 /// @param buf
-void XOR_first_bytes(void *buf) {
-  // little ugly
-  // converts void ptr to int ptr to the buffer.
-  *(int *)buf = *(int *)buf ^ LARGEST_32_BIT_VALUE;
-}
-
-/// @brief long divison of bits.
-/// @param buf
-uint32_t long_divison(void *buf) { return 0; }
-
-/// @brief Calculates CRC.
-/// @param buffer
-/// @param buffer_size
-uint32_t crc(void *buf, size_t buf_len) {
-  DEBUG_PRINT(("[CRC] Original bytes: \n"));
-  print_bits(buf, buf_len);
-
-  char *reversed_bytes = reverse_each_byte(buf, buf_len);
-  DEBUG_PRINT(("[CRC] Reversed bytes: \n"));
-  print_bits(reversed_bytes, buf_len);
-
-  char *appended_buffer = append_zeros_to_buffer(reversed_bytes, buf_len);
-  free(reversed_bytes); // free reversed bytes because we dont need it anymore.
-  DEBUG_PRINT(("[CRC] Appended bytes: \n"));
-  print_bits(appended_buffer, buf_len + 4);
-
-  XOR_first_bytes(appended_buffer);
-  DEBUG_PRINT(("[CRC] Xored appeneded bytes: \n"));
-  print_bits(appended_buffer, buf_len + 4);
-
-  uint32_t remainder = long_divison(appended_buffer);
-  DEBUG_PRINT(("[CRC] Before remainder : (%u)\n", remainder));
-  print_bits(&remainder, sizeof(remainder));
-
-  remainder = remainder ^ LARGEST_32_BIT_VALUE;
-  DEBUG_PRINT(("[CRC] After xor remainder (%u): \n", remainder));
-  print_bits(&remainder, sizeof(remainder));
-
-  DEBUG_PRINT(("[CRC] Calculated CRC : %u  \n", remainder));
-  return remainder;
+/// @param len
+uint32_t crc(uint8_t *buf, int32_t len) {
+  return update_crc(0xFFFFFFFFL, buf, len) ^ 0xFFFFFFFFL;
 }
 
 // ENTRY POINT.
 int main(int argc, char *argv[]) {
-
   if (argc <= 1) {
     get_help_message();
     exit(0);
@@ -336,6 +269,9 @@ int main(int argc, char *argv[]) {
       fprintf(stderr, "Could not create output file.\n");
       exit(1);
     }
+
+    // precompute crc table
+    make_crc_table();
   }
 
   // trying to read png signature.
@@ -494,7 +430,7 @@ int main(int argc, char *argv[]) {
   // closes file.
   fclose(input_file_ptr);
   if (!DECODING_MODE) {
-    printf("ENCODING COMPLETE.");
+    printf("ENCODING COMPLETE.\n");
     fclose(output_file_ptr);
   } else {
     if (!found_secret_chunk) {
